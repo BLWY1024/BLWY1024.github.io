@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import animation
+
+fig,ax=plt.subplots()        #设置一个坐标轴
+x1=[0,1,2,3,4]               #被积函数函数 x[k]（设置两个函数相同,j均为有限带宽）
+x2=np.arange(0,9,step=1)     #卷积出来的x轴
+h1=np.ones(shape=5,dtype='float')    #x1的值被分为5个点，数据类型为单精度的
+h2=h1                                 #x[k]=h[-k]
+h3=np.zeros(shape=9,dtype='float')    #卷积出来的三角形被分为9个点，数据类型为单精度的
+i=0                                  #初始值为0，x[k]与h[n-k]无重叠，乘积为零
+while(i<9):                        #i表示移动了几个 在小于9的范围内讨论才有意义
+    j=0                            #j表示加了几次
+    if(i<=4):                      #开始重叠区域变大直至完全重叠
+        while(j<=i):
+            h3[i]=h1[j]*h2[-i+j-1]+h3[i]
+            j=j+1                              
+    else:                         #开始移出，重叠区域变小
+        while(j<9-i):
+            h3[i]=h1[i+j-4]*h2[j]+h3[i]
+            j=j+1
+    i=i+1
+
+plt.subplot(211)        #将多个图画到一个平面上其中，表示2行1列，当前激活第1个图
+line2,=plt.plot(x1,h1,'+')
+plt.subplot(212)        #将多个图画到一个平面上其中，表示2行1列，当前激活第2个图
+line,=plt.plot(x2,h3,'.')
+
+
+
+
+def animate(i):                             #定义animate的function，第i帧第i个时间点
+    line2.set_xdata(np.linspace(-4+i,i,5))   # 从-4+i到i 分布5个点
+    line.set_xdata(np.linspace(0,i,i+1))    #卷积出来的y[n]
+    line.set_ydata(h3[0:i+1])               #动画取0个开始到i个终  
+    return line2, line,
+    
+    
+def inti_animate():                         #定义init的function
+    line2.set_xdata(np.linspace(0,4,5))
+    line.set_xdata(np.linspace(0,0,1))
+    line.set_ydata(h3[0:0])
+    return line2, line,
+
+ani1=animation.FuncAnimation(fig=fig,func=animate,frames=8,init_func=inti_animate,interval=500,blit=False,)
+#调用FuncAnimation函数生成动画。参数说明：
+#fig 进行动画绘制的figure
+#func 自定义动画函数，即传入刚定义的函数animate
+#frames 动画长度，一次循环包含的帧数
+#init_func 自定义开始帧，即传入刚定义的函数init
+#interval 更新频率，以ms计
+#blit 选择更新所有点，还是仅更新产生变化的点   
+
+plt.rcParams['font.sans-serif']=['SimHei']    #在图表中显示中文
+plt.rcParams['axes.unicode_minus']=False      #正常显示负数
+
+
+
+plt.show()
